@@ -29,14 +29,15 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         README.md
-        dummy.h
-
         orderbookwindow.h orderbookwindow.cpp
         tbtrecord.h
         orderbookwindow.ui
         orderbookmanager.h orderbookmanager.cpp
         orderbook.h orderbook.cpp
         marketdepth.h
+        orderbookmodel.h orderbookmodel.cpp
+
+
 
     )
 # Define target properties for Android with Qt 6 as:

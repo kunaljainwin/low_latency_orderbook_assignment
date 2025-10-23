@@ -1,26 +1,30 @@
-#ifndef ORDERBOOKWINDOW_H
-#define ORDERBOOKWINDOW_H
-
+#pragma once
 #include <QWidget>
-#include <QList>
-#include <QPair>
-#include <QString>
-#include "ui_orderbookwindow.h"
+#include <QTableView>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QHeaderView>
+#include "orderbookmodel.h"
 #include "marketdepth.h"
+
 class OrderBookWindow : public QWidget
 {
     Q_OBJECT
 public:
     explicit OrderBookWindow(QWidget *parent = nullptr);
-    ~OrderBookWindow();
-
-    void setSymbol(const QString &symbol); // assign which symbol this window is for
-    void updateOrderBook(const QList<QPair<double,MarketDepth>> &bids,
-                         const QList<QPair<double,MarketDepth>> &asks);
+    void setSymbol(const QString &s);
+    void updateOrderBook(const QList<QPair<double, MarketDepth>> &bids,
+                         const QList<QPair<double, MarketDepth>> &asks);
 
 private:
-    Ui::OrderBookWindow *ui;
     QString symbol;
-};
+    QTableView *bidsView;
+    QTableView *asksView;
+    OrderBookModel *bidsModel;
+    OrderBookModel *asksModel;
 
-#endif // ORDERBOOKWINDOW_H
+    QLabel *totalBuyLabel;
+    QLabel *totalSellLabel;
+    QLabel *lastUpdatedLabel;
+};

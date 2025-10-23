@@ -29,9 +29,6 @@ bool OrderBookManager::loadFromCsv(const QString &path) {
 void OrderBookManager::setUpdateInterval(int ms) {
     if (ms == 0) {
         timer.stop();
-        // Real-time: process all instantly
-        while (currentIndex < records.size())
-            processNextRecord();
     } else {
         timer.start(ms);
     }

@@ -20,7 +20,16 @@ MainWindow::MainWindow(QWidget *parent)
     // Initialize OrderBookManager
     gManager = new OrderBookManager(this);
     gManager->loadFromCsv("../../Dummy_TBT.csv");
-    gManager->setUpdateInterval(50); // 50 ms throttle for demo
+
+    //dynamic throttle for demo
+    connect(ui->throtteSpinBox,QOverload<int>::of(&QSpinBox::valueChanged),this
+            ,&MainWindow::throttleChanged);
+    ui->throtteSpinBox->setRange(0, 90);           // 0 = real-time, max 90 ms
+    ui->throtteSpinBox->setSingleStep(5);           // step increment
+    ui->throtteSpinBox->setValue(50);                // initial value
+    ui->throtteSpinBox->setSuffix(" ms");            // optional text
+    ui->throtteSpinBox->setKeyboardTracking(true);   // immediate valueChanged while typing
+
 
     // Example symbols (could be loaded dynamically from CSV)
     QStringList symbols = {};
@@ -35,13 +44,9 @@ MainWindow::MainWindow(QWidget *parent)
         });
     }
 }
-
 MainWindow::~MainWindow()
 {
     delete ui;
-    for(auto &it:windows){
-        delete it;
-    }
     // Safely delete all open order book windows
     qDeleteAll(windows);
     windows.clear();
@@ -76,5 +81,8 @@ void MainWindow::openOrderBookWindow(const QString &symbol)
 void MainWindow::throttleChanged(int ms)
 {
     if (gManager)
+    {
         gManager->setUpdateInterval(ms); // update the OrderBookManager throttle
+        qDebug() << "Throttle changed to:" << ms << "ms";
+    }
 }

@@ -1,54 +1,82 @@
 #include "orderbookwindow.h"
-#include <QTableWidgetItem>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QDateTime>
 
 OrderBookWindow::OrderBookWindow(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::OrderBookWindow)
 {
-    ui->setupUi(this);
+    // Create table views
+    bidsView = new QTableView(this);
+    asksView = new QTableView(this);
 
-    //configure table headers
-    ui->tableBids->setColumnCount(3);
-    ui->tableBids->setHorizontalHeaderLabels(QStringList() << "Total Orders" << "Buy Price" << "Buy Qty");
-    ui->tableBids->verticalHeader()->setVisible(false);
+    // Create models
+    bidsModel = new OrderBookModel(QStringList()<<"Total Orders" << "Buy Price" << "Buy Qty",this,true);
+    asksModel = new OrderBookModel(QStringList()<<"Total Orders" << "Sell Price" << "Sell Qty",this,false);
 
-    ui->tableAsks->setColumnCount(3);
-    ui->tableAsks->setHorizontalHeaderLabels(QStringList() << "Total Orders" << "Sell Price" << "Sell Qty");
-    ui->tableBids->verticalHeader()->setVisible(false);
-}
+    bidsView->setModel(bidsModel);
+    asksView->setModel(asksModel);
 
-OrderBookWindow::~OrderBookWindow()
-{
-    delete ui;
+    // Disable editing
+    bidsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    asksView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    // Stretch columns
+    bidsView->horizontalHeader()->setStretchLastSection(true);
+    asksView->horizontalHeader()->setStretchLastSection(true);
+
+    // Bottom labels for totals and timestamp
+    totalBuyLabel = new QLabel("Total Buy Qty: 0", this);
+    totalSellLabel = new QLabel("Total Sell Qty: 0", this);
+    lastUpdatedLabel = new QLabel("Last Updated at: --:--:--", this);
+
+    QHBoxLayout *tablesLayout = new QHBoxLayout();
+    tablesLayout->addWidget(bidsView);
+    tablesLayout->addWidget(asksView);
+
+    QHBoxLayout *bottomLayout = new QHBoxLayout();
+    bottomLayout->addWidget(totalBuyLabel);
+    bottomLayout->addStretch();
+    bottomLayout->addWidget(totalSellLabel);
+    bottomLayout->addStretch();
+    bottomLayout->addWidget(lastUpdatedLabel);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->addLayout(tablesLayout);
+    mainLayout->addLayout(bottomLayout);
+
+    setLayout(mainLayout);
+    setMinimumSize(800, 400);  // width = 800, height = 400
 }
 
 void OrderBookWindow::setSymbol(const QString &s)
 {
     symbol = s;
-    setWindowTitle("Order Book: " + symbol);
-    qDebug() << "Setting symbol:" << s;
-
+    setWindowTitle("OB:" + symbol + "_NSE");
 }
 
-void OrderBookWindow::updateOrderBook(const QList<QPair<double,MarketDepth>> &bids,
-                                      const QList<QPair<double,MarketDepth>> &asks)
+void OrderBookWindow::updateOrderBook(const QList<QPair<double, MarketDepth>> &bids,
+                                      const QList<QPair<double, MarketDepth>> &asks)
 {
-    // Only update if this window is for the symbol
     if (symbol.isEmpty()) return;
 
-    // Update Bids table
-    ui->tableBids->setRowCount(bids.size());
-    for (int i = 0; i < bids.size(); ++i) {
-        ui->tableBids->setItem(i, 0, new QTableWidgetItem(QString::number(bids[i].second.orderCount())));
-        ui->tableBids->setItem(i, 1, new QTableWidgetItem(QString::number(bids[i].first, 'f', 2)));
-        ui->tableBids->setItem(i, 2, new QTableWidgetItem(QString::number(bids[i].second.volume())));
-    }
+    // ✅ Only update if new data is available; else keep old snapshot
+    if (!bids.isEmpty())
+        bidsModel->setData(bids);
 
-    // Update Asks table
-    ui->tableAsks->setRowCount(asks.size());
-    for (int i = 0; i < asks.size(); ++i) {
-        ui->tableAsks->setItem(i, 0, new QTableWidgetItem(QString::number(asks[i].second.orderCount())));
-        ui->tableAsks->setItem(i, 1, new QTableWidgetItem(QString::number(asks[i].first, 'f', 2)));
-        ui->tableAsks->setItem(i, 2, new QTableWidgetItem(QString::number(asks[i].second.volume())));
-    }
+    if (!asks.isEmpty())
+        asksModel->setData(asks);
+
+    // Update total quantities
+    double totalBuy = 0;
+    for (auto &b : bids) totalBuy += b.second.volume();
+    totalBuyLabel->setText(QString("Total Buy Qty: %1").arg(totalBuy));
+
+    double totalSell = 0;
+    for (auto &a : asks) totalSell += a.second.volume();
+    totalSellLabel->setText(QString("Total Sell Qty: %1").arg(totalSell));
+
+    // Update timestamp
+    lastUpdatedLabel->setText("Last Updated at: " + QDateTime::currentDateTime().toString("hh:mm:ss"));
 }
