@@ -10,7 +10,12 @@ It displays bid (buy) and ask (sell) sides using separate `QTableView`s, color-c
 Approx. 8–10 hours including design, implementation, and testing.
 
 ---
+## Screenshots
+<img width="1919" height="1006" alt="image" src="https://github.com/user-attachments/assets/ddabc26a-76a4-430d-abab-c3b8cd79a322" />
 
+<img width="1917" height="1010" alt="image" src="https://github.com/user-attachments/assets/86d66cda-e33b-46e8-ac5e-2881cd594490" />
+
+---
 ## ⚙️ Features
 - Dual-pane Order Book UI (bids & asks)
 - Blue text for buy side, red for sell side
