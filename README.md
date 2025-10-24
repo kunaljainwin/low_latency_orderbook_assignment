@@ -10,11 +10,25 @@ It displays bid (buy) and ask (sell) sides using separate `QTableView`s, color-c
 Approx. 8–10 hours including design, implementation, and testing.
 
 ---
+
 ## Screenshots
 <img width="1919" height="1006" alt="image" src="https://github.com/user-attachments/assets/ddabc26a-76a4-430d-abab-c3b8cd79a322" />
 
 <img width="1917" height="1010" alt="image" src="https://github.com/user-attachments/assets/86d66cda-e33b-46e8-ac5e-2881cd594490" />
 
+---
+
+## 🎥 Demo
+<div>
+    <a href="https://www.loom.com/share/309da63a9d3f47db942100b24177fb36">
+      <p>Book Building and Low Latency Assignment Demo - Watch Video</p>
+    </a>
+    <a href="https://www.loom.com/share/309da63a9d3f47db942100b24177fb36">
+      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/309da63a9d3f47db942100b24177fb36-f411896fa1ef211d-full-play.gif">
+    </a>
+  </div>
+<div>
+  
 ---
 ## ⚙️ Features
 - Dual-pane Order Book UI (bids & asks)
