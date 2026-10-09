@@ -75,13 +75,8 @@ void OrderBookWindow::updateOrderBook(const QList<QPair<double, MarketDepth>> &b
         return;
     }
 
-    if (!bids.isEmpty()) {
-        m_bidsModel->setData(bids);
-    }
-
-    if (!asks.isEmpty()) {
-        m_asksModel->setData(asks);
-    }
+    m_bidsModel->setData(bids);
+    m_asksModel->setData(asks);
 
     qint64 totalBuy = 0;
     for (const auto &b : bids) {

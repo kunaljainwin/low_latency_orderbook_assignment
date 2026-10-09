@@ -23,6 +23,11 @@ MainWindow::MainWindow(QWidget *parent)
     setupConnections();
     populateSymbolMenu();
 
+    const QStringList symbols = m_manager->getSymbols();
+    if (!symbols.isEmpty()) {
+        openOrderBookWindow(symbols.first());
+    }
+
     // Start with default throttle
     m_manager->setUpdateInterval(DEFAULT_THROTTLE_MS);
 }
@@ -80,6 +85,9 @@ void MainWindow::openOrderBookWindow(const QString &symbol)
                     }
                 });
     }
+
+    // Immediately supply the latest snapshot so the window is populated upon opening
+    window->updateOrderBook(m_manager->getBids(symbol), m_manager->getAsks(symbol));
 
     window->show();
     window->raise();

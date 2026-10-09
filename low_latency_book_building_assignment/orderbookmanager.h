@@ -18,6 +18,9 @@ public:
     void setUpdateInterval(int ms);
     QStringList getSymbols() const;
 
+    QList<QPair<double, MarketDepth>> getBids(const QString &symbol) const;
+    QList<QPair<double, MarketDepth>> getAsks(const QString &symbol) const;
+
     int totalRecords() const { return m_records.size(); }
     int currentIndex() const { return m_currentIndex; }
     void reset();

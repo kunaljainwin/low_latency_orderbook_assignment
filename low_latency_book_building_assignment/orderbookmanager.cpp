@@ -87,9 +87,15 @@ void OrderBookManager::setUpdateInterval(int ms) {
 }
 
 void OrderBookManager::processNextRecord() {
-    if (m_currentIndex >= m_records.size()) {
+    if (m_records.isEmpty()) {
         m_timer.stop();
         return;
+    }
+
+    if (m_currentIndex >= m_records.size()) {
+        // Continuous replay: restart stream from beginning so ticks keep flowing
+        m_currentIndex = 0;
+        m_books.clear();
     }
 
     const auto &rec = m_records.at(m_currentIndex++);
@@ -100,6 +106,22 @@ void OrderBookManager::processNextRecord() {
     const auto asks = book.getAsks();
 
     emit orderBookUpdated(rec.symbol, bids, asks);
+}
+
+QList<QPair<double, MarketDepth>> OrderBookManager::getBids(const QString &symbol) const {
+    auto it = m_books.constFind(symbol);
+    if (it != m_books.constEnd()) {
+        return it.value().getBids();
+    }
+    return {};
+}
+
+QList<QPair<double, MarketDepth>> OrderBookManager::getAsks(const QString &symbol) const {
+    auto it = m_books.constFind(symbol);
+    if (it != m_books.constEnd()) {
+        return it.value().getAsks();
+    }
+    return {};
 }
 
 QStringList OrderBookManager::getSymbols() const {
@@ -113,4 +135,5 @@ void OrderBookManager::reset() {
     m_symbols.clear();
     m_currentIndex = 0;
 }
+
 
