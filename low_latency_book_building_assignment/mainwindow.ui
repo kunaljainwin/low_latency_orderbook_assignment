@@ -20,7 +20,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QSpinBox" name="throtteSpinBox">
+   <widget class="QSpinBox" name="throttleSpinBox">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -59,12 +59,12 @@
      <height>17</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuOrderBool">
+   <widget class="QMenu" name="menuOrderBook">
     <property name="title">
      <string>OrderBook</string>
     </property>
    </widget>
-   <addaction name="menuOrderBool"/>
+   <addaction name="menuOrderBook"/>
   </widget>
  </widget>
  <resources/>

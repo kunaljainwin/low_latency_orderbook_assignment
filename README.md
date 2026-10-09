@@ -20,125 +20,85 @@ Approx. 8–10 hours including design, implementation, and testing.
 
 ## 🎥 Demo
 <div>
-    <a href="https://www.loom.com/share/309da63a9d3f47db942100b24177fb36">
-      <p>Book Building and Low Latency Assignment Demo - Watch Video</p>
-    </a>
-    <a href="https://www.loom.com/share/309da63a9d3f47db942100b24177fb36">
-      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/309da63a9d3f47db942100b24177fb36-f411896fa1ef211d-full-play.gif">
-    </a>
-  </div>
-<div>
-  
+  <a href="https://www.loom.com/share/309da63a9d3f47db942100b24177fb36">
+    <p>Book Building and Low Latency Assignment Demo - Watch Video</p>
+  </a>
+  <a href="https://www.loom.com/share/309da63a9d3f47db942100b24177fb36">
+    <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/309da63a9d3f47db942100b24177fb36-f411896fa1ef211d-full-play.gif" alt="Demo GIF" />
+  </a>
+</div>
+
 ---
+
 ## ⚙️ Features
-- Dual-pane Order Book UI (bids & asks)
-- Blue text for buy side, red for sell side
-- Totals and timestamp at the bottom
-- Automatic size management with minimum window dimensions
-- Dynamic throttling options
+- **Dual-Pane Order Book UI:** Separate bids and asks tables with automated depth sorting (descending bids, ascending asks).
+- **Color-Coded Depth:** Professional color scheme (vibrant blue for buy side, crisp red for sell side).
+- **Multi-Symbol Depth Views:** Open concurrent windows for different symbols (e.g. RELIANCE, TCS, INFY).
+- **Real-Time & Throttled Modes:** Configurable throttling from 0 ms (real-time stream) up to custom millisecond delay.
+- **Aggregated Market Metrics:** Total Buy/Sell quantities and precise timestamp tracking (`hh:mm:ss.zzz`).
+- **Zero-Copy Virtual Model:** High-throughput `QAbstractTableModel` implementation querying data without intermediate cell allocations.
 
 ---
-## Folder structure
+
+## 📂 Repository Structure
 ```sh
-orderbook/
-│
-├── main.cpp
-├── orderbookwindow.h
-├── orderbookwindow.cpp
-├── orderbookmodel.h
-├── orderbookmodel.cpp
-├── marketdepth.h
-├── CMakeLists.txt  (or .pro file if using qmake)
-└── README.md
+low_latency_orderbook_assignment/
+├── CMakeLists.txt                       # Root workspace build configuration
+├── README.md                            # Project documentation
+├── Dummy_TBT.csv                        # Bundled tick-by-tick market feed sample
+├── tests/
+│   └── marketdepth_test.cpp             # Unit tests for core depth structure
+└── low_latency_book_building_assignment/
+    ├── CMakeLists.txt                   # Application target & translation definitions
+    ├── README.md                        # Component documentation
+    ├── Dummy_TBT.csv                    # Local feed fallback
+    ├── main.cpp                         # Application entrypoint
+    ├── mainwindow.h / .cpp / .ui        # Control window with symbol menu & throttle
+    ├── orderbook.h / .cpp               # Order book state engine (price levels & sides)
+    ├── orderbookmanager.h / .cpp        # CSV feed loader & stream publisher
+    ├── orderbookmodel.h / .cpp          # Virtual QAbstractTableModel
+    ├── orderbookwindow.h / .cpp         # Depth viewer window
+    ├── marketdepth.h                    # Depth container (volume & order counts)
+    └── tbtrecord.h                      # Type-safe TBT record parser
 ```
 
 ---
 
-## 🧩 Compilation Instructions
+## 🧩 Build & Run Instructions
 
-### Using cmake
+### Prerequisites
+- C++17 compliant compiler (`g++` 9+ or `clang++` 10+)
+- CMake 3.16+
+- Qt 5.15 or Qt 6 (Widgets, Core)
+
+### Building via CMake
+
 ```bash
-mkdir build && cd build
-cmake ..
-make
-./orderbook
+# From workspace root
+cmake -B build -S .
+cmake --build build
+
+# Run the viewer
+./build/low_latency_book_building_assignment/orderbook
 ```
 
-### Running the Application
-
-```bash
-./orderbook
-```
-
-## 🧠 Approach
-
-### 1. **Architecture Design**
-The project follows the **Model–View architecture** provided by Qt:
-- **Model (`OrderBookModel`)** handles all order data and exposes it to the view.
-- **View (`QTableView`)** displays the data in tabular format.
-- **Controller (`OrderBookWindow`)** connects models and views, handling updates and layout.
-
-This separation ensures a scalable and maintainable design where data logic is independent of the UI.
+Alternatively, open `CMakeLists.txt` directly in **Qt Creator** and click **Run**.
 
 ---
 
-### 2. **Data Handling**
-- Two separate models are used — one for **bids** and one for **asks**.
-- Each model holds a list of orders with fields such as **Price**, **Volume**, and **Total Orders**.
-- Updates are triggered through an `updateOrderBook()` method that refreshes the models with the latest state.
+## 🧠 Architecture & Refactored Design
 
----
+### 1. Model–View Architecture
+- **State Layer (`OrderBook`):** Maintains sorted maps of prices to `MarketDepth` per side. Lookups and aggregations operate via iterator lookups avoiding redundant map traversals.
+- **Virtual Model (`OrderBookModel`):** Implements `QAbstractTableModel` with direct projection from underlying depth data to table cells. Eliminates heap allocation of intermediate `QVariant` lists.
+- **View Layer (`OrderBookWindow`):** Clean separation of bids and asks using `QTableView` with non-editable triggers, alternating row colors, and proportional stretching.
+- **Feed Controller (`OrderBookManager`):** Ingests tick-by-tick records (`INSERT`, `REMOVE`), dispatches throttled updates, and automatically discovers unique symbols from the feed.
 
-### 3. **Model Implementation**
-The `OrderBookModel` class inherits from `QAbstractTableModel` and overrides the following key methods:
-- `rowCount()` and `columnCount()` – define the table size.
-- `data()` – provides the value, color, and alignment for each cell.
-- `headerData()` – defines column headers.
+### 2. Low-Latency Optimizations
+- **Type-Safe Enums:** Replaced string instructions (`"INSERT"`, `"REMOVE"`) and sides with strongly-typed `OrderInstruction` and `OrderSide` enums, cutting string allocation and comparison overhead on the update loop.
+- **Direct Cell Resolution:** In `OrderBookModel::data()`, cells resolve row data via switch on column index, bypassing 2D vector allocation.
+- **Pre-Allocated Vectors:** Bid and ask projections use `reserve()` to prevent vector reallocations during depth extraction.
+- **Robust Path Fallbacks:** Automated discovery of `Dummy_TBT.csv` in relative paths and application directories.
 
-Custom roles are implemented to:
-- **Color cells:** blue for bids (buy side), red for asks (sell side).
-- **Align text:** left-aligned for better readability.
-
----
-
-### 4. **UI Layout**
-The `OrderBookWindow` manages all visual components:
-- Two `QTableView`s are placed side by side using a horizontal layout.
-- Totals and last update time are shown below using a vertical layout.
-- Minimum window size is enforced for consistent display.
-
-Each view:
-- Uses its own model (`bidsModel`, `asksModel`).
-- Has headers and columns stretched proportionally.
-- Is styled for readability with alternating row colors and fixed column widths.
-
----
-
-### 5. **Dynamic Updates**
-When the order book is updated:
-- New bid and ask data are passed to their respective models.
-- The models emit `dataChanged()` signals to notify views.
-- The views automatically refresh to show the latest state.
-
-This mechanism ensures that even with frequent updates, the UI remains responsive and accurate.
-
----
-
-### 6. **Performance Considerations**
-- The table uses a **throttled update mechanism** (optional) to avoid excessive UI refreshes.
-- Only visible data cells are updated to maintain performance.
-- Thread-safety can be integrated later for real-time data streams.
-
----
-
-### 7. **User Experience Enhancements**
-- Text alignment and color coding make it easy to distinguish bids and asks.
-- Minimum width and height ensure the window never collapses visually.
-- The last update timestamp helps track the freshness of the data.
-
----
-
-### 8. **Outcome**
-The resulting application provides a clear, structured, and visually intuitive Order Book UI that can easily integrate with a real-time trading backend or simulated data feed.
 
 

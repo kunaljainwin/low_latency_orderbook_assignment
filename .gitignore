@@ -1,0 +1,18 @@
+# Build and IDE artifacts
+build/
+bin/
+*.o
+*.obj
+*.so
+*.a
+*.user*
+CMakeLists.txt.user
+.vscode/
+.idea/
+*.autosave
+*~
+*.swp
+*.qm
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
